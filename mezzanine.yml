@@ -4,7 +4,8 @@
   hosts: vagrant
   vars:
     venv_dir: ~/venv
-    python: "{{ venv_dir }}/bin/python"
+    venv_bin_dir: "{{ venv_dir }}/bin"
+    python: "{{ venv_bin_dir }}/python"
     project_dir: ~/mezzanine-project
     repo: https://github.com/lorin/mezzanine-example.git
     django_secret_key: 5584232d-e27a-4d2a-94f0-88d2bf5553161843c1ac-3f03-4df7-b3f3-8078192c65fdc007d1b8-b096-4969-a909-613adced709f
@@ -16,6 +17,7 @@
     database_host: localhost
     database_port: 5432
     locale: en_US.UTF-8
+    admin_password: password
   tasks:
     - name: install apt packages
       apt: pkg={{ item }} update_cache=yes cache_valid_time=3600
@@ -76,7 +78,9 @@
         command: migrate
         app_path: "{{ project_dir }}"
         virtualenv: "{{ venv_dir }}"
-    - name: generate the setsite.py script
-      template: src=templates/setsite.py.j2 dest={{ project_dir }}/setsite.py mode=0700
     - name: set the site id
-      command: "{{ python }} {{ project_dir }}/setsite.py"
+      script: scripts/setsite.py
+      environment:
+        PATH: "{{ venv_bin_dir }}"
+        PROJECT_DIR: "{{ project_dir }}"
+        WEBSITE_DOMAIN: "{{ website_domain }}"
