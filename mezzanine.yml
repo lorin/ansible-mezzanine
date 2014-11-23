@@ -81,6 +81,6 @@
     - name: set the site id
       script: scripts/setsite.py
       environment:
-        PATH: "{{ venv_bin_dir }}"
+        PATH: /home/vagrant/venv/bin
         PROJECT_DIR: "{{ project_dir }}"
         WEBSITE_DOMAIN: "{{ website_domain }}"
