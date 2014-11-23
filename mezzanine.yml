@@ -2,5 +2,20 @@
 ---
 - name: Deploy mezzanine on vagrant
   hosts: vagrant
+  vars:
+    venv_dir: ~/venv
+    mezzanine_version: 3.1.10
   tasks:
-    - 
+    - name: install apt packages
+      apt: pkg={{ item }} update_cache=yes cache_valid_time=3600
+      sudo: True
+      with_items:
+        - libjpeg-dev
+        - python-dev
+        - python-pip
+        - python-setuptools
+        - python-virtualenv
+    - name: create a virtualenv
+      command: virtualenv {{ venv_dir }} creates={{ venv_dir }}
+    - name: install mezzanine
+      pip: name=mezzanine version={{ mezzanine_version }} virtualenv={{ venv_dir }}
