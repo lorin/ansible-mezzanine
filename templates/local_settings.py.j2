@@ -2,22 +2,17 @@
 DEBUG = True
 
 # Make these unique, and don't share it with anybody.
-SECRET_KEY = "5584232d-e27a-4d2a-94f0-88d2bf5553161843c1ac-3f03-4df7-b3f3-8078192c65fdc007d1b8-b096-4969-a909-613adced709f"
-NEVERCACHE_KEY = "3552df47-3d91-4dde-925e-4b1d38cdf9e19d14951c-d5b3-45ed-b91b-4690b841e7e75800eee8-3b1e-4502-87c0-e96945e2519d"
+SECRET_KEY = "{{ django_secret_key }}"
+NEVERCACHE_KEY = "{{ django_nevercache_key }}"
 
 DATABASES = {
     "default": {
-        # Ends with "postgresql_psycopg2", "mysql", "sqlite3" or "oracle".
-        "ENGINE": "django.db.backends.sqlite3",
-        # DB name or path to database file if using sqlite3.
-        "NAME": "dev.db",
-        # Not used with sqlite3.
-        "USER": "",
-        # Not used with sqlite3.
-        "PASSWORD": "",
-        # Set to empty string for localhost. Not used with sqlite3.
-        "HOST": "",
+        "ENGINE": "django.db.backends.postgresql_psycopg2",
+        "NAME": "{{ database_name }}",
+        "USER": "{{ database_user }}",
+        "PASSWORD": "{{ database_password }}",
+        "HOST": "{{ database_host }}",
         # Set to empty string for default. Not used with sqlite3.
-        "PORT": "",
+        "PORT": {{ database_port }},
     }
 }
