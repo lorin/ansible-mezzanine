@@ -2,11 +2,12 @@
 ---
 - name: Deploy mezzanine on vagrant
   hosts: vagrant
+  gather_facts: True
   vars:
-    venv_dir: ~/venv
+    venv_dir: "{{ ansible_env.HOME }}/venv"
     venv_bin_dir: "{{ venv_dir }}/bin"
     python: "{{ venv_bin_dir }}/python"
-    project_dir: ~/mezzanine-project
+    project_dir: "{{ ansible_env.HOME}}/mezzanine-project"
     repo: https://github.com/lorin/mezzanine-example.git
     django_secret_key: 5584232d-e27a-4d2a-94f0-88d2bf5553161843c1ac-3f03-4df7-b3f3-8078192c65fdc007d1b8-b096-4969-a909-613adced709f
     django_nevercache_key: 3552df47-3d91-4dde-925e-4b1d38cdf9e19d14951c-d5b3-45ed-b91b-4690b841e7e75800eee8-3b1e-4502-87c0-e96945e2519d
@@ -17,6 +18,8 @@
     database_host: localhost
     database_port: 5432
     locale: en_US.UTF-8
+    # This admin password is obviously ridiculously weak, don't use it in real
+    # life!
     admin_password: password
   tasks:
     - name: install apt packages
@@ -81,6 +84,12 @@
     - name: set the site id
       script: scripts/setsite.py
       environment:
-        PATH: /home/vagrant/venv/bin
+        PATH: "{{ venv_bin_dir }}"
         PROJECT_DIR: "{{ project_dir }}"
         WEBSITE_DOMAIN: "{{ website_domain }}"
+    - name: set the admin password
+      script: scripts/setadmin.py
+      environment:
+        PATH: "{{ venv_bin_dir }}"
+        PROJECT_DIR: "{{ project_dir }}"
+        ADMIN_PASSWORD: "{{ admin_password }}"
