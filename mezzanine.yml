@@ -4,18 +4,74 @@
   hosts: vagrant
   vars:
     venv_dir: ~/venv
-    mezzanine_version: 3.1.10
+    python: "{{ venv_dir }}/bin/python"
+    project_dir: ~/mezzanine-project
+    repo: https://github.com/lorin/mezzanine-example.git
+    django_secret_key: 5584232d-e27a-4d2a-94f0-88d2bf5553161843c1ac-3f03-4df7-b3f3-8078192c65fdc007d1b8-b096-4969-a909-613adced709f
+    django_nevercache_key: 3552df47-3d91-4dde-925e-4b1d38cdf9e19d14951c-d5b3-45ed-b91b-4690b841e7e75800eee8-3b1e-4502-87c0-e96945e2519d
+    database_name: mezzanine
+    database_user: dbuser
+    database_password: e79c9761d0b54698a83ff3f93769e309
+    database_host: localhost
+    database_port: 5432
+    locale: en_US.UTF-8
   tasks:
     - name: install apt packages
       apt: pkg={{ item }} update_cache=yes cache_valid_time=3600
       sudo: True
       with_items:
+        - git
         - libjpeg-dev
+        - libpq-dev
+        - memcached
+        - postgresql
         - python-dev
         - python-pip
+        - python-psycopg2
         - python-setuptools
         - python-virtualenv
+        - supervisor
     - name: create a virtualenv
       command: virtualenv {{ venv_dir }} creates={{ venv_dir }}
-    - name: install mezzanine
-      pip: name=mezzanine version={{ mezzanine_version }} virtualenv={{ venv_dir }}
+    - name: install python packages
+      pip: name={{ item }} virtualenv={{ venv_dir }}
+      with_items:
+        - mezzanine
+        - gunicorn
+        - setproctitle
+        - south
+        - psycopg2
+        - django-compressor
+        - python-memcached
+    - name: check out the repository on the host
+      git: repo={{ repo }} dest={{ project_dir }}
+    - name: create the database
+      postgresql_db:
+        name: "{{ database_name }}"
+        encoding: UTF8
+        lc_ctype: "{{ locale }}"
+        lc_collate: "{{ locale }}"
+        template: template0
+      sudo: True
+      sudo_user: postgres
+    - name: create a user and grant access to database
+      postgresql_user:
+        db: "{{ database_name }}"
+        name: "{{ database_user }}"
+        password: "{{database_password}}"
+        priv: ALL
+        role_attr_flags: CREATEDB
+      sudo: True
+      sudo_user: postgres
+    - name: generate the settings file
+      template: src=templates/local_settings.py.j2 dest={{ project_dir }}/local_settings.py
+    - name: sync the database
+      django_manage:
+        command: syncdb
+        app_path: "{{ project_dir }}"
+        virtualenv: "{{ venv_dir }}"
+    - name: apply database migrations
+      django_manage:
+        command: migrate
+        app_path: "{{ project_dir }}"
+        virtualenv: "{{ venv_dir }}"
