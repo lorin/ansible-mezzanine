@@ -1,4 +1,9 @@
 #!/usr/bin/env ansible-playbook
+#
+# This playbook will deploy Mezzanine to vagrant. It contains
+# passwords that shwould not be placed in a publicly viewable file if this was
+# for a real deployment. Also, the admin_password is ridiculously weak.
+#
 ---
 - name: Deploy mezzanine on vagrant
   hosts: vagrant
@@ -18,8 +23,6 @@
     database_host: localhost
     database_port: 5432
     locale: en_US.UTF-8
-    # This admin password is obviously ridiculously weak, don't use it in real
-    # life!
     admin_password: password
     gunicorn_port: 8000
     gunicorn_proc_name: mezzanine
