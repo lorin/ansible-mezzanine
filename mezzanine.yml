@@ -21,6 +21,8 @@
     # This admin password is obviously ridiculously weak, don't use it in real
     # life!
     admin_password: password
+    gunicorn_port: 8000
+    gunicorn_proc_name: mezzanine
   tasks:
     - name: install apt packages
       apt: pkg={{ item }} update_cache=yes cache_valid_time=3600
@@ -30,6 +32,7 @@
         - libjpeg-dev
         - libpq-dev
         - memcached
+        - nginx
         - postgresql
         - python-dev
         - python-pip
@@ -71,16 +74,15 @@
       sudo_user: postgres
     - name: generate the settings file
       template: src=templates/local_settings.py.j2 dest={{ project_dir }}/local_settings.py
-    - name: sync the database
+    - name: sync the database, apply migrations, collect static content
       django_manage:
-        command: syncdb
+        command: "{{ item }}"
         app_path: "{{ project_dir }}"
         virtualenv: "{{ venv_dir }}"
-    - name: apply database migrations
-      django_manage:
-        command: migrate
-        app_path: "{{ project_dir }}"
-        virtualenv: "{{ venv_dir }}"
+      with_items:
+        - syncdb
+        - migrate
+        - collectstatic
     - name: set the site id
       script: scripts/setsite.py
       environment:
@@ -93,3 +95,21 @@
         PATH: "{{ venv_bin_dir }}"
         PROJECT_DIR: "{{ project_dir }}"
         ADMIN_PASSWORD: "{{ admin_password }}"
+    - name: set the gunicorn config file
+      template: src=templates/gunicorn.conf.py.j2 dest={{ project_dir }}/gunicorn.conf.py
+    - name: set the supervisor config file
+      template: src=templates/supervisor.conf.j2 dest=/etc/supervisor/conf.d/mezzanine.conf
+      sudo: True
+      notify: restart supervisor
+    - name: set the nginx config file
+      template: src=templates/nginx.conf.j2 dest=/etc/nginx/sites-enabled/mezzanine.conf
+      notify: restart nginx
+      sudo: True
+  handlers:
+    - name: restart supervisor
+      supervisorctl: name=gunicorn_mezzanine state=restarted
+      sudo: True
+    - name: restart nginx
+      service: name=nginx state=restarted
+      sudo: True
+
