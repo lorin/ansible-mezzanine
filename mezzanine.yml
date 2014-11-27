@@ -9,17 +9,23 @@
   hosts: vagrant
   gather_facts: True
   vars:
-    venv_dir: "{{ ansible_env.HOME }}/venv"
-    venv_bin_dir: "{{ venv_dir }}/bin"
-    python: "{{ venv_bin_dir }}/python"
-    project_dir: "{{ ansible_env.HOME}}/mezzanine-project"
+    user: "{{ ansible_ssh_user }}"
+    proj_name: mezzanine_example
+    proj_path: "{{ ansible_env.HOME}}/{{ proj_name }}"
+    conf_path: /etc/nginx/conf
+    ssl_enabled: True
+    domains:
+      - 192.168.33.10.xip.io
+      - www.192.168.33.10.xip.io
+    venv_path: "{{ ansible_env.HOME }}/venv"
+    python: "{{ venv_path }}/bin/python"
     repo: https://github.com/lorin/mezzanine-example.git
-    django_secret_key: 5584232d-e27a-4d2a-94f0-88d2bf5553161843c1ac-3f03-4df7-b3f3-8078192c65fdc007d1b8-b096-4969-a909-613adced709f
-    django_nevercache_key: 3552df47-3d91-4dde-925e-4b1d38cdf9e19d14951c-d5b3-45ed-b91b-4690b841e7e75800eee8-3b1e-4502-87c0-e96945e2519d
-    website_domain: 192.168.33.10.xip.io
-    database_name: mezzanine
-    database_user: dbuser
-    database_password: e79c9761d0b54698a83ff3f93769e309
+    secret_key: 5584232d-e27a-4d2a-94f0-88d2bf5553161843c1ac-3f03-4df7-b3f3-8078192c65fdc007d1b8-b096-4969-a909-613adced709f
+    nevercache_key: 3552df47-3d91-4dde-925e-4b1d38cdf9e19d14951c-d5b3-45ed-b91b-4690b841e7e75800eee8-3b1e-4502-87c0-e96945e2519d
+    live_hostname: 192.168.33.10.xip.io
+    database_name: "{{ proj_name }}"
+    database_user: "{{ proj_name }}"
+    db_pass: e79c9761d0b54698a83ff3f93769e309
     database_host: localhost
     database_port: 5432
     locale: en_US.UTF-8
@@ -44,9 +50,9 @@
         - python-virtualenv
         - supervisor
     - name: create a virtualenv
-      command: virtualenv {{ venv_dir }} creates={{ venv_dir }}
+      command: virtualenv {{ venv_path }} creates={{ venv_path }}
     - name: install python packages
-      pip: name={{ item }} virtualenv={{ venv_dir }}
+      pip: name={{ item }} virtualenv={{ venv_path }}
       with_items:
         - mezzanine
         - gunicorn
@@ -56,32 +62,30 @@
         - django-compressor
         - python-memcached
     - name: check out the repository on the host
-      git: repo={{ repo }} dest={{ project_dir }}
+      git: repo={{ repo }} dest={{ proj_path }} accept_hostkey=yes ssh_opts="-o ForwardAgent"
+    - name: create a user
+      postgresql_user:
+        name: "{{ database_user }}"
+        password: "{{ db_pass }}"
+      sudo: True
+      sudo_user: postgres
     - name: create the database
       postgresql_db:
         name: "{{ database_name }}"
+        owner: "{{ database_user }}"
         encoding: UTF8
         lc_ctype: "{{ locale }}"
         lc_collate: "{{ locale }}"
         template: template0
       sudo: True
       sudo_user: postgres
-    - name: create a user and grant access to database
-      postgresql_user:
-        db: "{{ database_name }}"
-        name: "{{ database_user }}"
-        password: "{{database_password}}"
-        priv: ALL
-        role_attr_flags: CREATEDB
-      sudo: True
-      sudo_user: postgres
     - name: generate the settings file
-      template: src=templates/local_settings.py.j2 dest={{ project_dir }}/local_settings.py
+      template: src=templates/local_settings.py.j2 dest={{ proj_path }}/local_settings.py
     - name: sync the database, apply migrations, collect static content
       django_manage:
         command: "{{ item }}"
-        app_path: "{{ project_dir }}"
-        virtualenv: "{{ venv_dir }}"
+        app_path: "{{ proj_path }}"
+        virtualenv: "{{ venv_path }}"
       with_items:
         - syncdb
         - migrate
@@ -89,17 +93,17 @@
     - name: set the site id
       script: scripts/setsite.py
       environment:
-        PATH: "{{ venv_bin_dir }}"
-        PROJECT_DIR: "{{ project_dir }}"
-        WEBSITE_DOMAIN: "{{ website_domain }}"
+        PATH: "{{ venv_path }}/bin"
+        PROJECT_DIR: "{{ proj_path }}"
+        WEBSITE_DOMAIN: "{{ live_hostname }}"
     - name: set the admin password
       script: scripts/setadmin.py
       environment:
-        PATH: "{{ venv_bin_dir }}"
-        PROJECT_DIR: "{{ project_dir }}"
+        PATH: "{{ venv_path }}/bin"
+        PROJECT_DIR: "{{ proj_path }}"
         ADMIN_PASSWORD: "{{ admin_password }}"
     - name: set the gunicorn config file
-      template: src=templates/gunicorn.conf.py.j2 dest={{ project_dir }}/gunicorn.conf.py
+      template: src=templates/gunicorn.conf.py.j2 dest={{ proj_path }}/gunicorn.conf.py
     - name: set the supervisor config file
       template: src=templates/supervisor.conf.j2 dest=/etc/supervisor/conf.d/mezzanine.conf
       sudo: True
@@ -108,6 +112,18 @@
       template: src=templates/nginx.conf.j2 dest=/etc/nginx/sites-enabled/mezzanine.conf
       notify: restart nginx
       sudo: True
+    - name: ensure config path exists
+      file: path={{ conf_path }} state=directory
+      sudo: True
+    - name: create ssl certificates
+      command: >
+        openssl req -new -x509 -nodes -out {{ proj_name }}.crt
+        -keyout {{ proj_name}}.key -subj '/CN={{ domains[0] }}' -days 3650
+        chdir={{ conf_path }}
+        creates={{ conf_path }}/{{ proj_name}}.crt
+      sudo: True
+      when: ssl_enabled
+      notify: restart nginx
   handlers:
     - name: restart supervisor
       supervisorctl: name=gunicorn_mezzanine state=restarted

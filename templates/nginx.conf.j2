@@ -1,14 +1,27 @@
 
-upstream mezzanine {
+upstream {{ proj_name }} {
     server 127.0.0.1:{{ gunicorn_port }};
 }
 
 server {
 
     listen 80;
-    server_name {{ website_domain }};
+
+    {% if ssl_enabled %}
+    listen 443 ssl;
+    {% endif %}
+    server_name {{ domains|join(", ") }}
     client_max_body_size 10M;
     keepalive_timeout    15;
+
+    {% if ssl_enabled %}
+    ssl_certificate      conf/{{ proj_name }}.crt;
+    ssl_certificate_key  conf/{{ proj_name }}.key;
+    ssl_session_cache    shared:SSL:10m;
+    ssl_session_timeout  10m;
+    ssl_ciphers RC4:HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+    {% endif %}
 
     location / {
         proxy_redirect      off;
@@ -16,23 +29,23 @@ server {
         proxy_set_header    X-Real-IP               $remote_addr;
         proxy_set_header    X-Forwarded-For         $proxy_add_x_forwarded_for;
         proxy_set_header    X-Forwarded-Protocol    $scheme;
-        proxy_pass          http://mezzanine;
+        proxy_pass          http://{{ proj_name }};
     }
 
     location /static/ {
-        root            {{ project_dir }};
+        root            {{ proj_path }};
         access_log      off;
         log_not_found   off;
     }
 
     location /robots.txt {
-        root            {{ project_dir }}/static;
+        root            {{ proj_path }}/static;
         access_log      off;
         log_not_found   off;
     }
 
     location /favicon.ico {
-        root            {{ project_dir }}/static/img;
+        root            {{ proj_path }}/static/img;
         access_log      off;
         log_not_found   off;
     }

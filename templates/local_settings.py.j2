@@ -1,18 +1,37 @@
+from __future__ import unicode_literals
 
-DEBUG = True
-
-# Make these unique, and don't share it with anybody.
-SECRET_KEY = "{{ django_secret_key }}"
-NEVERCACHE_KEY = "{{ django_nevercache_key }}"
+SECRET_KEY = "{{ secret_key }}"
+NEVERCACHE_KEY = "{{ nevercache_key }}"
+ALLOWED_HOSTS = [{{ domains|surround_by_quote|join(", ") }}]
 
 DATABASES = {
     "default": {
+        # Ends with "postgresql_psycopg2", "mysql", "sqlite3" or "oracle".
         "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": "{{ database_name }}",
-        "USER": "{{ database_user }}",
-        "PASSWORD": "{{ database_password }}",
-        "HOST": "{{ database_host }}",
+        # DB name or path to database file if using sqlite3.
+        "NAME": "{{ proj_name }}",
+        # Not used with sqlite3.
+        "USER": "{{ proj_name }}",
+        # Not used with sqlite3.
+        "PASSWORD": "{{ db_pass }}",
+        # Set to empty string for localhost. Not used with sqlite3.
+        "HOST": "127.0.0.1",
         # Set to empty string for default. Not used with sqlite3.
-        "PORT": {{ database_port }},
+        "PORT": "",
     }
 }
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTOCOL", "https")
+
+CACHE_MIDDLEWARE_SECONDS = 60
+
+CACHE_MIDDLEWARE_KEY_PREFIX = "{{ proj_name }}"
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.memcached.MemcachedCache",
+        "LOCATION": "127.0.0.1:11211",
+    }
+}
+
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
