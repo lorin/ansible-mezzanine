@@ -10,7 +10,7 @@ server {
     {% if ssl_enabled %}
     listen 443 ssl;
     {% endif %}
-    server_name {{ domains|join(", ") }}
+    server_name {{ domains|join(", ") }};
     client_max_body_size 10M;
     keepalive_timeout    15;
 

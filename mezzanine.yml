@@ -109,7 +109,18 @@
       sudo: True
       notify: restart supervisor
     - name: set the nginx config file
-      template: src=templates/nginx.conf.j2 dest=/etc/nginx/sites-enabled/mezzanine.conf
+      template: src=templates/nginx.conf.j2 dest=/etc/nginx/sites-available/mezzanine.conf
+      notify: restart nginx
+      sudo: True
+    - name: enable the nginx config file
+      file:
+        src: /etc/nginx/sites-available/mezzanine.conf
+        dest: /etc/nginx/sites-enabled/mezzanine.conf
+        state: link
+      notify: restart nginx
+      sudo: True
+    - name: remove the default nginx config file
+      file: path=/etc/nginx/sites-enabled/default state=absent
       notify: restart nginx
       sudo: True
     - name: ensure config path exists
