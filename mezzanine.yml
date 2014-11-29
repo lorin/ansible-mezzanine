@@ -22,7 +22,7 @@
     domains:
       - 192.168.33.10.xip.io
       - www.192.168.33.10.xip.io
-    repo_url: https://github.com/lorin/mezzanine-example.git
+    repo_url: git@github.com:lorin/mezzanine-example.git
     gunicorn_port: 8000
     locale: en_US.UTF-8
     secret_key: 5584232d-e27a-4d2a-94f0-88d2bf5553161843c1ac-3f03-4df7-b3f3-8078192c65fdc007d1b8-b096-4969-a909-613adced709f
@@ -65,7 +65,7 @@
         - django-compressor
         - python-memcached
     - name: check out the repository on the host
-      git: repo={{ repo_url }} dest={{ proj_path }} accept_hostkey=yes ssh_opts="-o ForwardAgent"
+      git: repo={{ repo_url }} dest={{ proj_path }} accept_hostkey=yes
     - name: create a user
       postgresql_user:
         name: "{{ database_user }}"
