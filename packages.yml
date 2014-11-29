@@ -1,0 +1,20 @@
+#!/usr/bin/env ansible-playbook
+---
+- name: Deploy mezzanine Python packages on vagrant
+  hosts: default
+  gather_facts: True
+  vars:
+    proj_name: mezzanine_example
+    venv_home: "{{ ansible_env.HOME }}"
+    venv_path: "{{ venv_home }}/{{ proj_name }}"
+  tasks:
+    - name: python packages
+      pip: name={{ item.name }} version={{ item.version }} virtualenv={{ venv_path }}
+      with_items:
+        - {name: mezzanine, version: 3.1.10 }
+        - {name: gunicorn, version: 19.1.1 }
+        - {name: setproctitle, version: 1.1.8 }
+        - {name: south, version: 1.0.1 }
+        - {name: psycopg2, version: 2.5.4 }
+        - {name: django-compressor, version: 1.4 }
+        - {name: python-memcached, version: 1.53 }

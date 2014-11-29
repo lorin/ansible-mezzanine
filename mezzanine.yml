@@ -53,8 +53,6 @@
         - python-setuptools
         - python-virtualenv
         - supervisor
-    - name: create a virtualenv
-      command: virtualenv {{ venv_path }} creates={{ venv_path }}
     - name: install Mezzanine
       pip: name=mezzanine version=3.1.10 virtualenv={{ venv_path }}
     - name: install other python packages
