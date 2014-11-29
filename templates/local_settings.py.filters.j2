@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 SECRET_KEY = "{{ secret_key }}"
 NEVERCACHE_KEY = "{{ nevercache_key }}"
-ALLOWED_HOSTS = [{% for domain in domains %}"{{ domain }}",{% endfor %}]
+ALLOWED_HOSTS = [{{ domains|surround_by_quote|join(", ") }}]
 
 DATABASES = {
     "default": {
