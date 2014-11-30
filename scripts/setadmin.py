@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# A script to se the site domain
+# A script to set the admin credentials
 # Assumes two environment variables
 #
 # PROJECT_DIR: the project directory (e.g., ~/projname)
