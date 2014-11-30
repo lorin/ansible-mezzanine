@@ -11,7 +11,7 @@
     db_pass: e79c9761d0b54698a83ff3f93769e309
     admin_pass: password
     user: "{{ ansible_ssh_user }}"
-    proj_name: mezzanine_example
+    proj_name: mezzanine-example
     venv_home: "{{ ansible_env.HOME }}"
     venv_path: "{{ venv_home }}/{{ proj_name }}"
     proj_dirname: project
