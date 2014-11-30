@@ -137,6 +137,7 @@
     - name: ensure config path exists
       file: path={{ conf_path }} state=directory
       sudo: True
+      when: ssl_enabled
     - name: create ssl certificates
       command: >
         openssl req -new -x509 -nodes -out {{ proj_name }}.crt
