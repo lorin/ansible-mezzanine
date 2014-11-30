@@ -7,7 +7,6 @@
 ---
 - name: Deploy mezzanine on vagrant
   hosts: default
-  gather_facts: True
   vars:
     db_pass: e79c9761d0b54698a83ff3f93769e309
     admin_pass: password
@@ -84,15 +83,23 @@
       sudo_user: postgres
     - name: generate the settings file
       template: src=templates/local_settings.py.j2 dest={{ proj_path }}/local_settings.py
-    - name: sync the database, apply migrations, collect static content
+    - name: initialize the database
       django_manage:
-        command: "{{ item }}"
+        command: createdb --noinput --nodata
         app_path: "{{ proj_path }}"
         virtualenv: "{{ venv_path }}"
-      with_items:
-        - syncdb
-        - migrate
-        - collectstatic
+      register: result
+      changed_when: not result.failed and "Creating tables" in result.out
+      failed_when: result.failed and "Database already created" not in result.msg
+      #    - name: sync the database, apply migrations, collect static content
+      #      django_manage:
+      #        command: "{{ item }}"
+      #        app_path: "{{ proj_path }}"
+      #        virtualenv: "{{ venv_path }}"
+      #      with_items:
+      #        - syncdb
+      #        - migrate
+      #        - collectstatic
     - name: set the site id
       script: scripts/setsite.py
       environment:
