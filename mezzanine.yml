@@ -141,9 +141,9 @@
     - name: create ssl certificates
       command: >
         openssl req -new -x509 -nodes -out {{ proj_name }}.crt
-        -keyout {{ proj_name}}.key -subj '/CN={{ domains[0] }}' -days 3650
+        -keyout {{ proj_name }}.key -subj '/CN={{ domains[0] }}' -days 3650
         chdir={{ conf_path }}
-        creates={{ conf_path }}/{{ proj_name}}.crt
+        creates={{ conf_path }}/{{ proj_name }}.crt
       sudo: True
       when: ssl_enabled
       notify: restart nginx
