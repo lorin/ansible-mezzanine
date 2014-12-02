@@ -16,6 +16,7 @@
     venv_path: "{{ venv_home }}/{{ proj_name }}"
     proj_dirname: project
     proj_path: "{{ venv_path }}/{{ proj_dirname }}"
+    reqs_path: requirements.txt
     manage: "{{ python }} {{ proj_path }}/manage.py"
     live_hostname: 192.168.33.10.xip.io
     domains:
@@ -52,9 +53,9 @@
         - python-setuptools
         - python-virtualenv
         - supervisor
-    - name: install Mezzanine
-      pip: name=mezzanine version=3.1.10 virtualenv={{ venv_path }}
-    - name: install other python packages
+    - name: check out the repository on the host
+      git: repo={{ repo_url }} dest={{ proj_path }} accept_hostkey=yes
+    - name: install required python packages
       pip: name={{ item }} virtualenv={{ venv_path }}
       with_items:
         - gunicorn
@@ -63,8 +64,8 @@
         - psycopg2
         - django-compressor
         - python-memcached
-    - name: check out the repository on the host
-      git: repo={{ repo_url }} dest={{ proj_path }} accept_hostkey=yes
+    - name: install requirements.txt
+      pip: requirements={{ proj_path }}/{{ reqs_path }} virtualenv={{ venv_path }}
     - name: create a user
       postgresql_user:
         name: "{{ database_user }}"
