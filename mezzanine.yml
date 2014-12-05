@@ -1,15 +1,8 @@
 #!/usr/bin/env ansible-playbook
-#
-# This playbook will deploy Mezzanine to vagrant. It contains
-# passwords that shwould not be placed in a publicly viewable file if this was
-# for a real deployment. Also, the admin_password is ridiculously weak.
-#
 ---
 - name: Deploy mezzanine on vagrant
   hosts: default
   vars:
-    db_pass: e79c9761d0b54698a83ff3f93769e309
-    admin_pass: password
     user: "{{ ansible_ssh_user }}"
     proj_name: mezzanine-example
     venv_home: "{{ ansible_env.HOME }}"
@@ -25,9 +18,8 @@
     repo_url: git@github.com:lorin/mezzanine-example.git
     gunicorn_port: 8000
     locale: en_US.UTF-8
-    secret_key: 5584232d-e27a-4d2a-94f0-88d2bf5553161843c1ac-3f03-4df7-b3f3-8078192c65fdc007d1b8-b096-4969-a909-613adced709f
-    nevercache_key: 3552df47-3d91-4dde-925e-4b1d38cdf9e19d14951c-d5b3-45ed-b91b-4690b841e7e75800eee8-3b1e-4502-87c0-e96945e2519d
-    # Not defined in fabfile, but defined here for convenience
+    # Variables below don't appear in Mezannine's fabfile.py
+    # but I've added them for convenience
     conf_path: /etc/nginx/conf
     ssl_enabled: True
     python: "{{ venv_path }}/bin/python"
@@ -36,6 +28,8 @@
     database_host: localhost
     database_port: 5432
     gunicorn_proc_name: mezzanine
+  vars_files:
+    - secrets.yml
   tasks:
     - name: install apt packages
       apt: pkg={{ item }} update_cache=yes cache_valid_time=3600
