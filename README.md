@@ -20,8 +20,13 @@ You can turn off fact caching by editing ansible.cfg and commenting out the line
 
 ## Running the playbook
 
+
+You need a secrets.yml file that contains the passwords for several of the
+services, but you can simply copy the example file secrets.yml.example.
+
 To run it, do:
 
+    cp secrets.yml.example secrets.yml
     vagrant up
 
 Then point your browser to: http://192.168.33.10.xip.io or
