@@ -1,0 +1,13 @@
+---
+- name: deploy database on vagrant
+  hosts: db
+  vars_files:
+    - secrets.yml
+  roles:
+    - role: database
+    - role: mezzanine
+      live_hostname: 192.168.33.10.xip.io
+      domains:
+        - 192.168.33.10.xip.io
+        - www.192.168.33.10.xip.io
+
