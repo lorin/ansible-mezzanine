@@ -12,8 +12,11 @@ You need to have installed:
 * Redis
 * Python redis library
 
-Redis and the Python redis library are because this has fact caching enabled.
-You can turn off fact caching by editing ansible.cfg and commenting out the line:
+Redis and the Python redis library are requirements because the ansible.cfg is
+configured for fact caching enabled.
+
+You don't need Redis or the Python redis library if you turn off fact caching.
+You can turn it off by editing ansible.cfg and commenting out the line:
 
     fact_caching = redis
 
