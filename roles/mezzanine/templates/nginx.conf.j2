@@ -1,0 +1,51 @@
+upstream {{ mezzanine_proj_name }} {
+    server 127.0.0.1:{{ mezzanine_gunicorn_port }};
+}
+
+server {
+
+    listen 80;
+
+    {% if ssl_enabled %}
+    listen 443 ssl;
+    {% endif %}
+    server_name {{ domains|join(", ") }};
+    client_max_body_size 10M;
+    keepalive_timeout    15;
+
+    {% if ssl_enabled %}
+    ssl_certificate      conf/{{ mezzanine_proj_name }}.crt;
+    ssl_certificate_key  conf/{{ mezzanine_proj_name }}.key;
+    ssl_session_cache    shared:SSL:10m;
+    ssl_session_timeout  10m;
+    ssl_ciphers RC4:HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+    {% endif %}
+
+    location / {
+        proxy_redirect      off;
+        proxy_set_header    Host                    $host;
+        proxy_set_header    X-Real-IP               $remote_addr;
+        proxy_set_header    X-Forwarded-For         $proxy_add_x_forwarded_for;
+        proxy_set_header    X-Forwarded-Protocol    $scheme;
+        proxy_pass          http://{{ mezzanine_proj_name }};
+    }
+
+    location /static/ {
+        root            {{ mezzanine_proj_path }};
+        access_log      off;
+        log_not_found   off;
+    }
+
+    location /robots.txt {
+        root            {{ mezzanine_proj_path }}/static;
+        access_log      off;
+        log_not_found   off;
+    }
+
+    location /favicon.ico {
+        root            {{ mezzanine_proj_path }}/static/img;
+        access_log      off;
+        log_not_found   off;
+    }
+}

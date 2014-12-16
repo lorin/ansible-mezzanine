@@ -1,0 +1,4 @@
+---
+database_name: "{{ mezzanine_proj_name }}"
+database_user: "{{ mezzanine_proj_name }}"
+database_port: 5432
