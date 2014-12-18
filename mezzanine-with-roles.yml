@@ -1,5 +1,5 @@
 ---
-- name: deploy database on vagrant
+- name: deploy mezzanine on vagrant
   hosts: web
   vars_files:
     - secrets.yml
