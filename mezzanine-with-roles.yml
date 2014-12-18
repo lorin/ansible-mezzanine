@@ -1,6 +1,6 @@
 ---
 - name: deploy database on vagrant
-  hosts: db
+  hosts: web
   vars_files:
     - secrets.yml
   roles:
