@@ -5,6 +5,8 @@
     - secrets.yml
   roles:
     - role: database
+      database_name: "{{ mezzanine_proj_name }}"
+      database_user: "{{ mezzanine_proj_name }}"
     - role: mezzanine
       live_hostname: 192.168.33.10.xip.io
       domains:
