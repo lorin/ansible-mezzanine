@@ -6,6 +6,12 @@
     - libpq-dev
     - postgresql
     - python-psycopg2
+- name: copy configuration file
+  copy: >
+    src=postgresql.conf dest=/etc/postgresql/9.3/main/postgresql.conf
+    owner=postgres group=postgres perms=0644
+  sudo: True
+  notify: restart postgres
 - name: create a user
   postgresql_user:
     name: "{{ database_user }}"
