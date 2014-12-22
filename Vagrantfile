@@ -47,7 +47,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     web.vm.provision "ansible" do |ansible|
       ansible.limit = 'all'
-      ansible.playbook = "mezzanine-with-roles.yml"
+      ansible.playbook = "mezzanine-across-servers.yml"
     end
 
   end
