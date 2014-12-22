@@ -4,9 +4,10 @@ galaxy_info:
   description: Install Mezzanine
   license: BSD
   min_ansible_version: 1.7
-  - name: Ubuntu
-    versions:
-    - trusty
+  platforms:
+    - name: Ubuntu
+      versions:
+      - trusty
   categories:
-  - web
+    - web
 dependencies: []
