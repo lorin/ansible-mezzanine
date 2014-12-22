@@ -13,7 +13,6 @@
   vars_files:
     - secrets.yml
   roles:
-    - role: database
     - role: mezzanine
       database_host: "{{ hostvars.db.ansible_eth1.ipv4.address }}"
       live_hostname: 192.168.33.10.xip.io
