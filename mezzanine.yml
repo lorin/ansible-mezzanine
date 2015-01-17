@@ -78,15 +78,6 @@
       sudo_user: postgres
     - name: generate the settings file
       template: src=templates/local_settings.py.j2 dest={{ proj_path }}/local_settings.py
-      # If we used createdb, we could do it like this
-      # - name: initialize the database
-      # - django_manage:
-      # -   command: createdb --noinput --nodata
-      # -   app_path: "{{ proj_path }}"
-      # -   virtualenv: "{{ venv_path }}"
-      # - register: result
-      # - changed_when: not result.failed and "Creating tables" in result.out
-      # - failed_when: result.failed and "Database already created" not in result.msg
     - name: sync the database, apply migrations, collect static content
       django_manage:
         command: "{{ item }}"
