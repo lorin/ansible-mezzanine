@@ -1,6 +1,6 @@
 #!/usr/bin/env ansible-playbook
 ---
-- name: Deploy mezzanine on vagrant
+- name: Deploy mezzanine
   hosts: web
   vars:
     user: "{{ ansible_ssh_user }}"
